@@ -1,63 +1,68 @@
 <template>
   <div class="home_container">
     <div class="list_container">
-      <h1>Customer List</h1>
-      <ModalView v-if="isModalViewed" @close-modal="isModalViewed = false">
+      <h1>Project List</h1>
+      <About :nameOfChild="modalContentList" />
+      <!-- <ModalView v-if="isModalViewed" @close-modal="isModalViewed = false">
         <Content :nameOfChild="modalContentList" />
-      </ModalView>
+      </ModalView> -->
 
-      <ul>
-        <li v-for="item in list" :key="item.id">
-          {{ item.ShipName }}
-          <button @click="handleClickButton(item.id)">
-            open
-          </button>
-
-          <!-- <router-link :to="`/home/${id}`">{{ id }}</router-link> -->
-        </li>
-      </ul>
+      <table id="list">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Logo</th>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Verified</th>
+            <th>Current Price(USD)</th>
+            <th>Market Cap(USD)</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="items">
+          <tr v-for="(item, id) in info" :key="id">
+            <td>{{ id }}</td>
+            <td><img :src="item.logo" alt="logo" /></td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.slug }}</td>
+            <td>{{ item.is_verified ? 'O' : 'X' }}</td>
+            <td>{{ `${numberWithCommas(item.current_price.USD)}` }}</td>
+            <td>{{ `${numberWithCommas(item.market_cap.USD)}` }}</td>
+            <router-link :to="`/home/${item.id}`">{{ item.id }}</router-link>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <!-- <h1>Bitcoin Price Index</h1> -->
-  <!-- <MainView /> -->
-  <!-- <div id="app" v-for="currency in info" :key="currency" class="currency">
-      {{ (currency.code, currency.description) }}:
-      <span class="lighten">
-        <router-link :to="`home/${code}`">
-          <span v-html="currency.symbol"
-            >{{ currency.symbol }}
-          </span></router-link
-        >
-      </span>
-    </div> -->
 </template>
 
 <script>
-import ModalView from '../src/components/ModalView.vue';
-import Content from '../src/components/Content.vue';
+// import ModalView from '../src/components/ModalView.vue';
+// import Content from '../src/components/Content.vue';
+// import About from '../src/components/About';
 import axios from 'axios';
-import mockData from '../src/api/mockData.js';
+// import mockData from '../src/api/mockData.js';
 
 export default {
   name: 'App',
   components: {
-    ModalView,
-    Content,
+    // About,
+    // ModalView,
+    // Content,
   },
   // 함수로 인해 추출되는 데이터, (computed로 산출된 데이터는 구조가 달라진다? )
   // 값이 또 변경되기 전의 값을 캐싱한다.
   computed: {
     // list: () => mockData.fetch(),
     modalContentList() {
-      return this.list.find((item) => this.selectedId === item.id);
+      return this.info.find((item) => this.selectedId === item.id);
     },
   },
   // 애플리케이션에서 사용할 데이터 (대부분 객체 또는 배열 )
   data() {
     return {
       isModalViewed: false,
-      list: mockData.fetch(),
       selectedId: -1,
       info: [],
     };
@@ -69,14 +74,18 @@ export default {
       this.isModalViewed = true;
       this.selectedId = id;
     },
+    numberWithCommas(item) {
+      return item.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    },
   },
 
   mounted() {
-    axios;
-    // .get('https://api.coindesk.com/v1/bpi/currentprice.json')
-    // .get('https://jsonplaceholder.typicode.com/posts')
-    // .then((response) => ((this.info = response.data), console.log(response)))
-    // .catch((error) => console.log(error));
+    axios
+      .get('https://api.xangle.io/project/list')
+      .then(
+        (response) => ((this.info = response.data), console.log(response.data))
+      )
+      .catch((error) => console.log(error));
   },
   // filters: {
   //   currencydecimal(value) {
@@ -113,6 +122,7 @@ export default {
         border: 1px solid #444444;
         position: relative;
         line-height: 20px;
+        /* display: flex; */
         button {
           position: absolute;
           right: 10px;

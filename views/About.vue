@@ -1,25 +1,23 @@
 <template>
   <div class="about_container">
-    <p>이 페이지는 ID.{{ $route.params.id }}의 상세 정보를 출력합니다.</p>
-    <div class="customer" v-if="item" key="customer">
-      <h1>item infomation</h1>
+    <div class="detail" v-if="item" key="detail">
+      <!-- <h1>item infomation</h1>
       <br />
       <tr>
-        <td>Ship name :</td>
-        <td>{{ item.ShipName }}</td>
-        <td>Ship city :</td>
-        <td>{{ item.ShipCity }}</td>
-        <td>Ship address :</td>
-        <td>{{ item.ShipAddress }}</td>
-      </tr>
+        <td> name :</td>
+        <td>{{ item.name }}</td>
+        <td>Ship slug :</td>
+        <td>{{ item.slug }}</td>
+   
+      </tr> -->
     </div>
 
-    <!-- <h1>about</h1> -->
-    <!-- <ul>
+    <h1>about</h1>
+    <ul>
       <li v-for="{ id, name } in list" :key="id">
         <router-link :to="`/home/${id}`">{{ name }}</router-link>
       </li>
-    </ul> -->
+    </ul>
     <!-- <MainView /> -->
   </div>
 </template>
@@ -35,11 +33,33 @@ export default {
   props: {
     id: Number,
   },
+  // data() {
+  //   return {
+  //     item: null,
+  //   };
+  // },
   data() {
     return {
-      item: null,
+      list: mockData.fetch(),
     };
+    // return {
+    //   item: null,
+    //   list:
+    //   axios
+    //   .get('https://api.xangle.io/project/list')
+    //   .then(
+    //     (response) => ((this.info = response.data), console.log(response.data))
+    //   )
+    //   .catch((error) => console.log(error))
+
+    // };
   },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.item = vm.list.find((item) => Number(to.params.id) === item.id);
+    });
+  },
+
   watch: {
     id: {
       handler() {
@@ -62,7 +82,7 @@ export default {
 };
 </script>
 
-<style scope>
+<style lang="scss">
 .home_container {
   padding-top: 10px;
 }
