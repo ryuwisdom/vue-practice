@@ -16,10 +16,11 @@ const router = new VueRouter({
       component: Home,
     },
     {
-      path: '/home/:id(\\d+)',
+      path: '/home/:name',
       component: About,
       // 함수로 지정하면 첫 매개변수로 현재 라우트 객체를 사용할 수 있음.
-      props: (route) => ({ id: Number(route.params.id) }),
+      // props: (route) => ({ id: Number(route.params.id) }),
+      props: (route) => ({ name: String(route.params.name) }),
     },
   ],
 });

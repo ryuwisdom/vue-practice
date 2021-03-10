@@ -3,7 +3,7 @@
     <h1>content</h1>
 
     <div class="customer">
-      <h1>Ship Information</h1>
+      <h2>Ship Information</h2>
       <br />
 
       <tr>
