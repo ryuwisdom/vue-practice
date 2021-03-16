@@ -23,20 +23,25 @@
           </tr>
         </thead>
         <tbody id="items">
-          <tr v-for="(item, id) in filterCoinByName" :key="id">
+          <!-- 캐싱으로 성능개선 -->
+          <tr v-for="(item, id) in filterCoinByName" :key="item.project_id">
             <td>{{ id }}</td>
             <td><img :src="item.logo" alt="logo" /></td>
             <td>{{ item.name }}</td>
             <td>{{ item.slug }}</td>
             <td>{{ item.is_verified ? 'O' : 'X' }}</td>
-            <td>{{ `${numberWithCommas(item.current_price.USD)}` }}</td>
-            <td>{{ `${numberWithCommas(item.market_cap.USD)}` }}</td>
+            <!-- numberWithCommas 메서드를 js에서 모두 처리 -> 예시 찾아보기, 코인별 통화단위 split 고민해보기 -->
+            <!-- 통화단위 구분 함수 소수점 이전 이후 나누어서 -->
+            <td>{{ item.current_price.USD }}</td>
+            <td>{{ item.market_cap.USD }}</td>
             <router-link :to="`/home/${item.name}`" exact>
               {{ item.name }}
             </router-link>
           </tr>
 
           <infinite-loading @infinite="infiniteHandler" spinner="waveDots">
+            <!-- slot 학습 -->
+            <!-- style inline 지양 -->
             <div
               slot="no-more"
               style="color: rgb(102, 102, 102); font-size: 14px; padding: 10px 0px;"
@@ -62,6 +67,7 @@ export default {
 
   computed: {
     filterCoinByName: function() {
+      // 이전 코드랑 비교
       return this.info.filter((item) => item.name.includes(this.name));
     },
   },
@@ -75,38 +81,47 @@ export default {
   },
   // 애플리케이션에서 사용할 메서드
   methods: {
-    infiniteHandler($state) {
-      const EACH_LEN = 30;
-      axios
-        .get('https://api.xangle.io/project/list', {
-          params: {
-            page: this.page,
-            items_per_page: 30,
-          },
-        })
-        .then((response) => {
-          setTimeout(() => {
-            if (response.data.length) {
-              this.info = this.info.concat(response.data);
-              $state.loaded();
-              this.page += 1;
-              console.log('after', this.info.length, this.page);
+    async infiniteHandler($state) {
+      // EACH_LEN 변수명 고려
+      // 변수명은 명사형 메서드는 동사형 지향
+      //requestingItemLength
+      const willFetchItemLength = 30;
+      const response = await axios.get('https://api.xangle.io/project/list', {
+        params: {
+          page: this.page,
+          items_per_page: 30,
+        },
+      });
+      setTimeout(() => {
+        // if 중첩 줄이기, asyc/await
+        if (response.data.length) {
+          response.data.map((item) => {
+            item.current_price.USD = this.numberWithCommas(
+              item.current_price.USD
+            );
+            item.market_cap.USD = this.numberWithCommas(item.market_cap.USD);
+            return item;
+          });
 
-              // 끝 지정(No more data) - 데이터가 EACH_LEN개 미만이면
-              if (response.data.length / EACH_LEN < 1) {
-                $state.complete();
-              }
-            } else {
-              // 끝 지정(No more data)
-              $state.complete();
-            }
-          }, 1000);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+          this.info = this.info.concat(response.data);
+          $state.loaded();
+          this.page += 1;
+          console.log('after', this.info.length, this.page);
+          // 끝 지정(No more data) - 데이터가 EACH_LEN개 미만이면
+          if (response.data.length / willFetchItemLength < 1) {
+            $state.complete();
+          }
+        } else {
+          // 끝 지정(No more data)
+          $state.complete();
+        }
+      }, 1000);
     },
+
+    // 에러 처리학;
+
     numberWithCommas(item) {
+      console.log('+_+');
       return item.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     },
   },
@@ -129,24 +144,28 @@ export default {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+
     .filter_side {
       width: 300px;
       height: 25px;
       border-radius: 4px;
       border: 0.6px solid gray;
     }
+
     input::placeholder {
       padding-left: 5px;
       letter-spacing: 1px;
     }
     .list {
       padding-top: 50px;
+
       ul {
         width: 560px;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
+
         li {
           width: 450px;
           padding: 10px;
@@ -155,6 +174,7 @@ export default {
           position: relative;
           line-height: 20px;
           /* display: flex; */
+
           button {
             position: absolute;
             right: 10px;
@@ -170,6 +190,7 @@ export default {
             opacity: 0.75;
             letter-spacing: 1px;
             cursor: pointer;
+
             &:hover {
               transform: scale(0.8);
               box-shadow: none;
